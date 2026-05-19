@@ -1,0 +1,15 @@
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+.mvn/wrapper/maven-wrapper.jar
+
+*.iml
+.idea/
+.vscode/
+*.swp
+*.swo
+
+.env
