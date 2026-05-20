@@ -1,5 +1,10 @@
 package com.openstates.app.service.impl;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.openstates.app.dto.FilterOptionsDTO;
 import com.openstates.app.dto.PoliticianDTO;
 import com.openstates.app.dto.openstates.OpenStatesPersonResponse;
@@ -9,11 +14,8 @@ import com.openstates.app.repository.PoliticianRoleRepository;
 import com.openstates.app.service.OpenStatesApiService;
 import com.openstates.app.service.PoliticianMapper;
 import com.openstates.app.service.PoliticianService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -66,12 +68,17 @@ public class PoliticianServiceImpl implements PoliticianService {
     public void syncFromApi() {
         log.info("Starting sync from OpenStates API...");
 
-        List<OpenStatesPersonResponse> responses = openStatesApiService.fetchAllPoliticians();
-        List<Politician> politicians = responses.stream()
-                .map(politicianMapper::toEntity)
-                .toList();
+        try {
+            List<OpenStatesPersonResponse> responses = openStatesApiService.fetchAllPoliticians();
+            List<Politician> politicians = responses.stream()
+                    .map(politicianMapper::toEntity)
+                    .toList();
 
-        politicianRepository.saveAll(politicians);
-        log.info("Sync completed. {} politicians saved.", politicians.size());
+            politicianRepository.saveAll(politicians);
+            log.info("Sync completed. {} politicians saved.", politicians.size());
+        } catch (Exception e) {
+            log.error("Sync failed: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }
