@@ -1,5 +1,10 @@
 package com.openstates.app.service;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import com.openstates.app.dto.PoliticianDTO;
 import com.openstates.app.dto.PoliticianRoleDTO;
 import com.openstates.app.dto.openstates.OpenStatesCurrentRole;
@@ -7,10 +12,6 @@ import com.openstates.app.dto.openstates.OpenStatesJurisdiction;
 import com.openstates.app.dto.openstates.OpenStatesPersonResponse;
 import com.openstates.app.entity.Politician;
 import com.openstates.app.entity.PoliticianRole;
-import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
 
 @Component
 public class PoliticianMapper {

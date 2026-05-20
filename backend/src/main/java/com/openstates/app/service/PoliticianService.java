@@ -1,9 +1,9 @@
 package com.openstates.app.service;
 
+import java.util.List;
+
 import com.openstates.app.dto.FilterOptionsDTO;
 import com.openstates.app.dto.PoliticianDTO;
-
-import java.util.List;
 
 public interface PoliticianService {
 

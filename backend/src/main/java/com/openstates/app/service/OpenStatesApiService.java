@@ -1,8 +1,8 @@
 package com.openstates.app.service;
 
-import com.openstates.app.dto.openstates.OpenStatesPersonResponse;
-
 import java.util.List;
+
+import com.openstates.app.dto.openstates.OpenStatesPersonResponse;
 
 public interface OpenStatesApiService {
 
