@@ -15,7 +15,7 @@ CREATE TABLE politician (
 );
 
 CREATE TABLE politician_role (
-    id                  BIGSERIAL PRIMARY KEY,
+    id                  UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     politician_id       VARCHAR(255) NOT NULL,
     title               VARCHAR(255) NOT NULL,
     org_classification  VARCHAR(50),
