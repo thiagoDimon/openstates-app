@@ -1,6 +1,6 @@
 package com.openstates.app.service.impl;
 
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 
 import org.springframework.http.HttpStatusCode;
@@ -8,18 +8,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.openstates.app.dto.openstates.OpenStatesApiResponse;
+import com.openstates.app.dto.openstates.OpenStatesErrorResponse;
 import com.openstates.app.dto.openstates.OpenStatesPersonResponse;
 import com.openstates.app.exception.OpenStatesApiException;
+import com.openstates.app.exception.RateLimitException;
 import com.openstates.app.service.OpenStatesApiService;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Slf4j
 @Service
 public class OpenStatesApiServiceImpl implements OpenStatesApiService {
 
-    private static final int PER_PAGE = 100;
+    private static final int MAX_RETRIES = 1;
+    private static final int PER_PAGE = 20;
+    private static final Duration REQUEST_DELAY = Duration.ofMillis(6_500); // 6.5 seconds
+    private static final Duration RETRY_DELAY = Duration.ofSeconds(65); // 65 seconds
 
     private static final List<String> US_STATE_CODES = List.of(
             "al", "ak", "az", "ar", "ca", "co", "ct", "de", "fl", "ga",
@@ -37,73 +44,89 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
 
     @Override
     public List<OpenStatesPersonResponse> fetchAllPoliticians() {
-        List<OpenStatesPersonResponse> allPoliticians = new ArrayList<>();
-
-        for (String stateCode : US_STATE_CODES) {
-            try {
-                log.info("Fetching politicians for state: {}", stateCode);
-                allPoliticians.addAll(fetchAllPagesForState(stateCode));
-            } catch (OpenStatesApiException e) {
-                log.warn("Skipping state {} due to API error: {}", stateCode, e.getMessage());
-            }
-        }
-
-        log.info("Total politicians fetched: {}", allPoliticians.size());
-        return allPoliticians;
+        return Flux.fromIterable(US_STATE_CODES)
+                .concatMap(stateCode -> {
+                    log.info("Fetching politicians for state: {}", stateCode);
+                    return fetchAllPagesForState(stateCode)
+                            .onErrorResume(RateLimitException.class, e -> {
+                                log.warn("Rate limit reached for state {}: {}. Retrying in {}s...",
+                                        stateCode, e.getMessage(), RETRY_DELAY.getSeconds());
+                                return Flux.empty();
+                            })
+                            .onErrorResume(OpenStatesApiException.class, e -> {
+                                log.warn("Skipping state {} due to API error: {}", stateCode, e.getMessage());
+                                return Flux.empty();
+                            });
+                })
+                .collectList()
+                .doOnSuccess(list -> log.info("Total politicians fetched: {}", list.size()))
+                .block();
     }
 
-    private List<OpenStatesPersonResponse> fetchAllPagesForState(String stateCode) {
-        List<OpenStatesPersonResponse> results = new ArrayList<>();
+    private Flux<OpenStatesPersonResponse> fetchAllPagesForState(String stateCode) {
+        return fetchPage(stateCode, 1)
+                .flatMapMany(firstPage -> {
+                    if (firstPage.results() == null || firstPage.results().isEmpty()) {
+                        log.warn("No results returned for state: {}", stateCode);
+                        return Flux.empty();
+                    }
+                    if (firstPage.pagination() == null) {
+                        log.warn("No pagination info returned for state: {}", stateCode);
+                        return Flux.fromIterable(firstPage.results());
+                    }
 
-        OpenStatesApiResponse firstPage = fetchPage(stateCode, 1);
-        if (firstPage == null || firstPage.results() == null) {
-            log.warn("No results returned for state: {}", stateCode);
-            return results;
-        }
+                    int maxPage = firstPage.pagination().maxPage();
+                    Flux<OpenStatesPersonResponse> firstResults = Flux.fromIterable(firstPage.results());
 
-        if (firstPage.pagination() == null) {
-            log.warn("No pagination info returned for state: {}", stateCode);
-            return results;
-        }
+                    if (maxPage <= 1) {
+                        return firstResults;
+                    }
 
-        results.addAll(firstPage.results());
+                    Flux<OpenStatesPersonResponse> remainingResults = Flux.range(2, maxPage - 1)
+                            .concatMap(page -> Mono.delay(REQUEST_DELAY)
+                                    .then(fetchPage(stateCode, page))
+                                    .flatMapMany(response -> {
+                                        if (response.results() == null) {
+                                            log.warn("Empty response for state: {}, page: {}", stateCode, page);
+                                            return Flux.empty();
+                                        }
+                                        return Flux.fromIterable(response.results());
+                                    }));
 
-        int maxPage = firstPage.pagination().maxPage();
-        for (int page = 2; page <= maxPage; page++) {
-            OpenStatesApiResponse response = fetchPage(stateCode, page);
-            if (response != null && response.results() != null) {
-                results.addAll(response.results());
-            } else {
-                log.warn("Empty response for state: {}, page: {}", stateCode, page);
-            }
-        }
-
-        return results;
+                    return firstResults.concatWith(remainingResults);
+                })
+                .retryWhen(Retry.fixedDelay(MAX_RETRIES, RETRY_DELAY)
+                        .filter(RateLimitException.class::isInstance)
+                        .doBeforeRetry(signal -> log.info("Retrying state after rate limit delay...")));
     }
 
-    private OpenStatesApiResponse fetchPage(String stateCode, int page) {
-        try {
-            return webClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/people")
-                            .queryParam("jurisdiction", stateCode)
-                            .queryParam("page", page)
-                            .queryParam("per_page", PER_PAGE)
-                            .build())
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, response ->
-                            Mono.error(new OpenStatesApiException(
-                                    "Client error " + response.statusCode().value() + " fetching state: " + stateCode)))
-                    .onStatus(HttpStatusCode::is5xxServerError, response ->
-                            Mono.error(new OpenStatesApiException(
-                                    "Server error " + response.statusCode().value() + " fetching state: " + stateCode)))
-                    .bodyToMono(OpenStatesApiResponse.class)
-                    .block();
-        } catch (OpenStatesApiException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new OpenStatesApiException(
-                    "Network error fetching state " + stateCode + ", page " + page, e);
-        }
+    private Mono<OpenStatesApiResponse> fetchPage(String stateCode, int page) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/people")
+                        .queryParam("jurisdiction", stateCode)
+                        .queryParam("page", page)
+                        .queryParam("per_page", PER_PAGE)
+                        .build())
+                .retrieve()
+                .onStatus(status -> status.value() == 429, response ->
+                        response.bodyToMono(OpenStatesErrorResponse.class)
+                                .defaultIfEmpty(OpenStatesErrorResponse.unknown())
+                                .flatMap(error -> Mono.error(new RateLimitException(
+                                        "Rate limit for state " + stateCode + ": " + error.detail()))))
+                .onStatus(HttpStatusCode::is4xxClientError, response ->
+                        response.bodyToMono(OpenStatesErrorResponse.class)
+                                .defaultIfEmpty(OpenStatesErrorResponse.unknown())
+                                .flatMap(error -> Mono.error(new OpenStatesApiException(
+                                        "Client error " + response.statusCode().value() + " fetching state " + stateCode + ": " + error.detail()))))
+                .onStatus(HttpStatusCode::is5xxServerError, response ->
+                        response.bodyToMono(OpenStatesErrorResponse.class)
+                                .defaultIfEmpty(OpenStatesErrorResponse.unknown())
+                                .flatMap(error -> Mono.error(new OpenStatesApiException(
+                                        "Server error " + response.statusCode().value() + " fetching state " + stateCode + ": " + error.detail()))))
+                .bodyToMono(OpenStatesApiResponse.class)
+                .onErrorMap(ex -> !(ex instanceof OpenStatesApiException),
+                        ex -> new OpenStatesApiException(
+                                "Network error fetching state " + stateCode + ", page " + page, ex));
     }
 }
