@@ -2,3 +2,7 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 *.md
 .git
+.idea/
+.vscode/
+*.swp
+*.swo
