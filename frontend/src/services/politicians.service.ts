@@ -10,3 +10,7 @@ export async function fetchFilterOptions(): Promise<FilterOptions> {
   const response = await api.get<FilterOptions>('/politicians/filters')
   return response.data
 }
+
+export async function syncPoliticians(): Promise<void> {
+  await api.post('/politicians/sync')
+}
