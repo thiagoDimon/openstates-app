@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Box, CircularProgress, Container, Typography } from '@mui/material'
-import { useFilterOptions, usePoliticians } from '@/hooks/usePoliticians'
+import { Box, Button, CircularProgress, Container, Typography } from '@mui/material'
+import { useFilterOptions, usePoliticians, useSyncPoliticians } from '@/hooks/usePoliticians'
 import { FilterBar } from '@/components/FilterBar'
 import { PoliticianGrid } from '@/components/PoliticianGrid'
 
@@ -13,6 +13,7 @@ export function PoliticiansPage() {
     state || undefined,
     party || undefined,
   )
+  const { mutate: sync, isPending: isSyncing } = useSyncPoliticians()
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -20,23 +21,33 @@ export function PoliticiansPage() {
         US Politicians
       </Typography>
 
-      {filtersLoading ? (
-        <Box sx={{ mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+        {filtersLoading ? (
           <CircularProgress size={24} />
-        </Box>
-      ) : filtersError ? (
-        <Typography color="error" sx={{ mb: 3 }}>
-          Failed to load filter options. Please refresh the page.
-        </Typography>
-      ) : filterOptions ? (
-        <FilterBar
-          filters={filterOptions}
-          state={state}
-          party={party}
-          onStateChange={setState}
-          onPartyChange={setParty}
-        />
-      ) : null}
+        ) : filtersError ? (
+          <Typography color="error">
+            Failed to load filter options. Please refresh the page.
+          </Typography>
+        ) : filterOptions ? (
+          <FilterBar
+            filters={filterOptions}
+            state={state}
+            party={party}
+            onStateChange={setState}
+            onPartyChange={setParty}
+          />
+        ) : null}
+
+        <Button
+          variant="contained"
+          onClick={() => sync()}
+          disabled={isSyncing}
+          startIcon={isSyncing ? <CircularProgress size={16} color="inherit" /> : undefined}
+          sx={{ ml: 'auto' }}
+        >
+          Sync Data
+        </Button>
+      </Box>
 
       <PoliticianGrid
         politicians={politicians}

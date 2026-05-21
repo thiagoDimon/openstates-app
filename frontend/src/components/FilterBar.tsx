@@ -12,7 +12,7 @@ interface FilterBarProps {
 
 export function FilterBar({ filters, state, party, onStateChange, onPartyChange }: FilterBarProps) {
   return (
-    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
       <FormControl size="small" sx={{ minWidth: 180 }}>
         <InputLabel>State</InputLabel>
         <Select
