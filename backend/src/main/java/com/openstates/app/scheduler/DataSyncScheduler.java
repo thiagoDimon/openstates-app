@@ -25,14 +25,22 @@ public class DataSyncScheduler {
     @Scheduled(cron = "${openstates.sync.cron}")
     public void scheduledSync() {
         log.info("Running scheduled sync...");
-        politicianService.syncFromApi();
+        try {
+            politicianService.syncFromApi();
+        } catch (Exception e) {
+            log.error("Scheduled sync failed unexpectedly: {}", e.getMessage(), e);
+        }
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void syncOnStartupIfEmpty() {
         if (politicianRepository.count() == 0) {
             log.info("Database is empty. Running initial sync on startup...");
-            politicianService.syncFromApi();
+            try {
+                politicianService.syncFromApi();
+            } catch (Exception e) {
+                log.error("Startup sync failed unexpectedly: {}", e.getMessage(), e);
+            }
         }
     }
 }

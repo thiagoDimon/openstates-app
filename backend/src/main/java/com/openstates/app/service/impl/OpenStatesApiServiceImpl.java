@@ -24,9 +24,10 @@ import reactor.util.retry.Retry;
 public class OpenStatesApiServiceImpl implements OpenStatesApiService {
 
     private static final int MAX_RETRIES = 1;
-    private static final int PER_PAGE = 20;
-    private static final Duration REQUEST_DELAY = Duration.ofMillis(6_500); // 6.5 seconds
-    private static final Duration RETRY_DELAY = Duration.ofSeconds(65); // 65 seconds
+    private static final int MAX_PAGES = 2;
+    private static final int PER_PAGE = 30;
+    private static final Duration REQUEST_DELAY = Duration.ofSeconds(1);
+    private static final Duration RETRY_DELAY = Duration.ofSeconds(60);
 
     private static final List<String> US_STATE_CODES = List.of(
             "al", "ak", "az", "ar", "ca", "co", "ct", "de", "fl", "ga",
@@ -45,19 +46,21 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
     @Override
     public List<OpenStatesPersonResponse> fetchAllPoliticians() {
         return Flux.fromIterable(US_STATE_CODES)
-                .concatMap(stateCode -> {
-                    log.info("Fetching politicians for state: {}", stateCode);
-                    return fetchAllPagesForState(stateCode)
+                .concatMap(stateCode -> Mono.delay(REQUEST_DELAY)
+                    .doOnNext(ignored -> log.info("Fetching politicians for state: {}", stateCode))
+                    .flatMapMany(ignored -> fetchAllPagesForState(stateCode)
                             .onErrorResume(RateLimitException.class, e -> {
-                                log.warn("Rate limit reached for state {}: {}. Retrying in {}s...",
-                                        stateCode, e.getMessage(), RETRY_DELAY.getSeconds());
+                                log.warn("Rate limit reached for state {}: {}", stateCode, e.getMessage());
                                 return Flux.empty();
                             })
                             .onErrorResume(OpenStatesApiException.class, e -> {
                                 log.warn("Skipping state {} due to API error: {}", stateCode, e.getMessage());
                                 return Flux.empty();
-                            });
-                })
+                            })
+                            .onErrorResume(e -> {
+                                log.warn("Skipping state {} due to unexpected error: {}", stateCode, e.getMessage());
+                                return Flux.empty();
+                            })))
                 .collectList()
                 .doOnSuccess(list -> log.info("Total politicians fetched: {}", list.size()))
                 .block();
@@ -82,7 +85,7 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
                         return firstResults;
                     }
 
-                    Flux<OpenStatesPersonResponse> remainingResults = Flux.range(2, maxPage - 1)
+                    Flux<OpenStatesPersonResponse> remainingResults = Flux.range(2, Math.min(maxPage, MAX_PAGES) - 1)
                             .concatMap(page -> Mono.delay(REQUEST_DELAY)
                                     .then(fetchPage(stateCode, page))
                                     .flatMapMany(response -> {
