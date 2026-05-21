@@ -78,7 +78,6 @@ public class PoliticianServiceImpl implements PoliticianService {
             log.info("Sync completed. {} politicians saved.", politicians.size());
         } catch (Exception e) {
             log.error("Sync failed: {}", e.getMessage(), e);
-            throw e;
         }
     }
 }
