@@ -22,8 +22,15 @@ CREATE TABLE politician_role (
     district            VARCHAR(100),
     jurisdiction_name   VARCHAR(255),
     jurisdiction_id     VARCHAR(255),
-    CONSTRAINT fk_politician_role_politician
-        FOREIGN KEY (politician_id) REFERENCES politician(id) ON DELETE CASCADE
+    state_code          VARCHAR(2),
+    CONSTRAINT fk_politician_role_politician FOREIGN KEY (politician_id) REFERENCES politician(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_politician_role_politician_id ON politician_role(politician_id);
+CREATE INDEX idx_politician_role_state_code ON politician_role(state_code);
+
+CREATE TABLE state_sync (
+    state_code        VARCHAR(2) PRIMARY KEY,
+    last_page_fetched INTEGER NOT NULL DEFAULT 1,
+    last_synced_at    TIMESTAMP NOT NULL
+);
