@@ -1,29 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchFilterOptions, fetchPoliticians, syncPoliticians } from '@/services/politicians.service'
+import { useQuery } from '@tanstack/react-query'
+import { fetchPoliticians } from '@/services/politicians.service'
 
 export function usePoliticians(state?: string, party?: string) {
   return useQuery({
     queryKey: ['politicians', state, party],
-    queryFn: async () => await fetchPoliticians(state, party),
+    queryFn: () => fetchPoliticians(state, party),
+    enabled: !!state,
     retry: 1,
-  })
-}
-
-export function useFilterOptions() {
-  return useQuery({
-    queryKey: ['filter-options'],
-    queryFn: async () => await fetchFilterOptions(),
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-  })
-}
-
-export function useSyncPoliticians() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: syncPoliticians,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['politicians'] })
-    },
   })
 }

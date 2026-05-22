@@ -1,19 +1,25 @@
 import { useState } from 'react'
 import { Box, Button, CircularProgress, Container, Typography } from '@mui/material'
-import { useFilterOptions, usePoliticians, useSyncPoliticians } from '@/hooks/usePoliticians'
+import SearchIcon from '@mui/icons-material/Search'
+import { usePoliticians } from '@/hooks/usePoliticians'
 import { FilterBar } from '@/components/FilterBar'
 import { PoliticianGrid } from '@/components/PoliticianGrid'
 
 export function PoliticiansPage() {
   const [state, setState] = useState('')
   const [party, setParty] = useState('')
+  const [appliedState, setAppliedState] = useState<string | undefined>(undefined)
+  const [appliedParty, setAppliedParty] = useState<string | undefined>(undefined)
 
-  const { data: filterOptions, isLoading: filtersLoading, isError: filtersError } = useFilterOptions()
-  const { data: politicians = [], isLoading, isError } = usePoliticians(
-    state || undefined,
-    party || undefined,
+  const { data: politicians = [], isLoading, isError, isFetched } = usePoliticians(
+    appliedState,
+    appliedParty,
   )
-  const { mutate: sync, isPending: isSyncing } = useSyncPoliticians()
+
+  function handleSearch() {
+    setAppliedState(state || undefined)
+    setAppliedParty(party || undefined)
+  }
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -22,38 +28,43 @@ export function PoliticiansPage() {
       </Typography>
 
       <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-        {filtersLoading ? (
-          <CircularProgress size={24} />
-        ) : filtersError ? (
-          <Typography color="error">
-            Failed to load filter options. Please refresh the page.
-          </Typography>
-        ) : filterOptions ? (
-          <FilterBar
-            filters={filterOptions}
-            state={state}
-            party={party}
-            onStateChange={setState}
-            onPartyChange={setParty}
-          />
-        ) : null}
+        <FilterBar
+          state={state}
+          party={party}
+          onStateChange={setState}
+          onPartyChange={setParty}
+        />
 
         <Button
           variant="contained"
-          onClick={() => sync()}
-          disabled={isSyncing}
-          startIcon={isSyncing ? <CircularProgress size={16} color="inherit" /> : undefined}
+          onClick={handleSearch}
+          disabled={isLoading || !state}
+          startIcon={<SearchIcon />}
           sx={{ ml: 'auto' }}
         >
-          Sync Data
+          Search
         </Button>
       </Box>
 
-      <PoliticianGrid
-        politicians={politicians}
-        isLoading={isLoading}
-        isError={isError}
-      />
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {!isLoading && !isFetched && (
+        <Typography color="text.secondary" sx={{ mt: 4, textAlign: 'center' }}>
+          Select a state to list the politicians and click Search.
+        </Typography>
+      )}
+
+      {!isLoading && isFetched && (
+        <PoliticianGrid
+          politicians={politicians}
+          isLoading={false}
+          isError={isError}
+        />
+      )}
     </Container>
   )
 }
