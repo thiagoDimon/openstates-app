@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openstates.app.dto.FilterOptionsDTO;
 import com.openstates.app.dto.PoliticianDTO;
 import com.openstates.app.service.PoliticianService;
 
@@ -28,11 +27,6 @@ public class PoliticianController {
             @RequestParam(required = false) String state,
             @RequestParam(required = false) String party) {
         return ResponseEntity.ok(politicianService.findAll(state, party));
-    }
-
-    @GetMapping("/filters")
-    public ResponseEntity<FilterOptionsDTO> getFilterOptions() {
-        return ResponseEntity.ok(politicianService.getFilterOptions());
     }
 
     @PostMapping("/sync")

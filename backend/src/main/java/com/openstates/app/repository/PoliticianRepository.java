@@ -13,12 +13,15 @@ import com.openstates.app.entity.Politician;
 public interface PoliticianRepository extends JpaRepository<Politician, String> {
 
     List<Politician> findAllByParty(String party);
-
     List<Politician> findAllByRoles_JurisdictionName(String jurisdictionName);
+    List<Politician> findAllByRoles_StateCode(String stateCode);
+
+    boolean existsByRoles_StateCode(String stateCode);
 
     @Query("SELECT DISTINCT p FROM Politician p JOIN p.roles r WHERE r.jurisdictionName = :state AND p.party = :party")
     List<Politician> findAllByStateAndParty(@Param("state") String state, @Param("party") String party);
 
-    @Query("SELECT DISTINCT p.party FROM Politician p WHERE p.party IS NOT NULL ORDER BY p.party")
-    List<String> findDistinctParties();
+    @Query("SELECT DISTINCT p FROM Politician p JOIN p.roles r WHERE r.stateCode = :stateCode AND p.party = :party")
+    List<Politician> findAllByStateCodeAndParty(@Param("stateCode") String stateCode, @Param("party") String party);
+
 }
