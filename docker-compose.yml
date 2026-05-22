@@ -65,20 +65,28 @@ services:
           cpus: '0.25'
           memory: 256M
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: openstates-frontend
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "80:80"
-  #   networks:
-  #     - openstates-network
-  #   depends_on:
-  #     backend:
-  #       condition: service_healthy
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: openstates-frontend
+    ports:
+      - "80:80"
+    networks:
+      - openstates-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+        reservations:
+          cpus: '0.10'
+          memory: 32M
 
 networks:
   openstates-network:
