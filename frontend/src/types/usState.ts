@@ -52,6 +52,6 @@ export const USState = {
   WY: 'WY',
 } as const
 
-export type USState = typeof USState[keyof typeof USState]
+export type USState = (typeof USState)[keyof typeof USState]
 
 export const US_STATE_OPTIONS = Object.values(USState)

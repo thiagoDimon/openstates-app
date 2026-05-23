@@ -38,13 +38,24 @@ export function SyncDataModal({ open, onClose }: SyncDataModalProps) {
   }
 
   return (
-    <Dialog open={open} onClose={isPending ? undefined : handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={isPending ? undefined : handleClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+    >
       <DialogTitle>Sync Politicians Data</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Select a state to fetch the next page of politicians from the OpenStates API.
         </Typography>
-        <FormControl fullWidth size="small" disabled={isPending || isSuccess}>
+        <FormControl
+          fullWidth
+          size="small"
+          disabled={isPending || isSuccess}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+        >
           <InputLabel>State</InputLabel>
           <Select
             value={selectedState}
@@ -52,8 +63,10 @@ export function SyncDataModal({ open, onClose }: SyncDataModalProps) {
             onChange={(e: SelectChangeEvent) => setSelectedState(e.target.value)}
           >
             <MenuItem value="">Select a state</MenuItem>
-            {US_STATE_OPTIONS.map(s => (
-              <MenuItem key={s} value={s}>{s}</MenuItem>
+            {US_STATE_OPTIONS.map((s) => (
+              <MenuItem key={s} value={s}>
+                {s}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -69,15 +82,19 @@ export function SyncDataModal({ open, onClose }: SyncDataModalProps) {
           </Typography>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button 
-          variant="outlined"
-          onClick={handleClose} 
+      <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'flex-end' }}>
+        <Button
+          variant="contained"
+          size="medium"
+          onClick={handleClose}
           disabled={isPending}
-          sx={{ 
-            bgcolor: isSuccess ? '' : 'error.main', 
-            '&:hover': { bgcolor: isSuccess ? '' : 'error.dark' }, 
-            color: isSuccess ? 'black' : 'white' 
+          sx={{
+            borderRadius: '50px',
+            textTransform: 'none',
+            px: 3,
+            bgcolor: 'error.main',
+            color: 'white',
+            '&:hover': { bgcolor: 'error.dark' },
           }}
         >
           {isSuccess ? 'Close' : 'Cancel'}
@@ -85,10 +102,18 @@ export function SyncDataModal({ open, onClose }: SyncDataModalProps) {
         {!isSuccess && (
           <Button
             variant="contained"
+            size="medium"
             onClick={handleConfirm}
             disabled={!selectedState || isPending}
             loading={isPending}
-            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+            sx={{
+              borderRadius: '50px',
+              textTransform: 'none',
+              px: 3,
+              bgcolor: 'success.main',
+              color: 'white',
+              '&:hover': { bgcolor: 'success.dark' },
+            }}
           >
             Confirm
           </Button>

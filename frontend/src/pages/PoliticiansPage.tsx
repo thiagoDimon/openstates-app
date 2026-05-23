@@ -14,18 +14,12 @@ export function PoliticiansPage() {
   const [appliedParty, setAppliedParty] = useState<string | undefined>(undefined)
   const [syncModalOpen, setSyncModalOpen] = useState(false)
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    isFetched,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = usePoliticians(appliedState, appliedParty)
+  const { data, isLoading, isError, error, isFetched, fetchNextPage, hasNextPage, isFetchingNextPage } = usePoliticians(
+    appliedState,
+    appliedParty
+  )
 
-  const politicians = data?.pages.flatMap(p => p.content) ?? []
+  const politicians = data?.pages.flatMap((p) => p.content) ?? []
   const errorMessage = isError && error instanceof Error ? error.message : undefined
 
   function handleSearch() {
@@ -39,32 +33,47 @@ export function PoliticiansPage() {
         US Politicians
       </Typography>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-        <FilterBar
-          state={state}
-          party={party}
-          onStateChange={setState}
-          onPartyChange={setParty}
-        />
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <Box sx={{ order: { xs: 1, sm: 2 }, display: 'flex', gap: 2, ml: 'auto' }}>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleSearch}
+            disabled={isLoading || !state}
+            startIcon={<SearchIcon />}
+            sx={{ borderRadius: '50px', textTransform: 'none', px: 3 }}
+          >
+            Search
+          </Button>
 
-        <Button
-          variant="contained"
-          onClick={handleSearch}
-          disabled={isLoading || !state}
-          startIcon={<SearchIcon />}
-          sx={{ ml: 'auto' }}
-        >
-          Search
-        </Button>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => setSyncModalOpen(true)}
+            startIcon={<SyncIcon />}
+            sx={{
+              borderRadius: '50px',
+              bgcolor: '#111',
+              '&:hover': { bgcolor: '#333' },
+              textTransform: 'none',
+              px: 3,
+            }}
+          >
+            Sync Data
+          </Button>
+        </Box>
 
-        <Button
-          variant="contained"
-          onClick={() => setSyncModalOpen(true)}
-          startIcon={<SyncIcon />}
-          sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
-        >
-          Sync Data
-        </Button>
+        <Box sx={{ order: { xs: 2, sm: 1 }, width: { xs: '100%', sm: 'auto' } }}>
+          <FilterBar state={state} party={party} onStateChange={setState} onPartyChange={setParty} />
+        </Box>
       </Box>
 
       {isLoading && (
@@ -90,10 +99,7 @@ export function PoliticiansPage() {
         />
       )}
 
-      <SyncDataModal
-        open={syncModalOpen}
-        onClose={() => setSyncModalOpen(false)}
-      />
+      <SyncDataModal open={syncModalOpen} onClose={() => setSyncModalOpen(false)} />
     </Container>
   )
 }

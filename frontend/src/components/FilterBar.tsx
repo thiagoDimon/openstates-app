@@ -12,31 +12,48 @@ interface FilterBarProps {
 
 export function FilterBar({ state, party, onStateChange, onPartyChange }: FilterBarProps) {
   return (
-    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-      <FormControl size="small" sx={{ minWidth: 160 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 2,
+        flexWrap: 'wrap',
+        width: { xs: '100%', sm: 'auto' },
+      }}
+    >
+      <FormControl
+        size="small"
+        sx={{
+          minWidth: { xs: 0, sm: 160 },
+          flex: { xs: 1, sm: '0 0 auto' },
+          '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+        }}
+      >
         <InputLabel>State</InputLabel>
-        <Select
-          value={state}
-          label="State"
-          onChange={(e: SelectChangeEvent) => onStateChange(e.target.value)}
-        >
+        <Select value={state} label="State" onChange={(e: SelectChangeEvent) => onStateChange(e.target.value)}>
           <MenuItem value="">Select a state</MenuItem>
-          {US_STATE_OPTIONS.map(s => (
-            <MenuItem key={s} value={s}>{s}</MenuItem>
+          {US_STATE_OPTIONS.map((s) => (
+            <MenuItem key={s} value={s}>
+              {s}
+            </MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      <FormControl size="small" sx={{ minWidth: 160 }}>
+      <FormControl
+        size="small"
+        sx={{
+          minWidth: { xs: 0, sm: 160 },
+          flex: { xs: 1, sm: '0 0 auto' },
+          '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+        }}
+      >
         <InputLabel>Party</InputLabel>
-        <Select
-          value={party}
-          label="Party"
-          onChange={(e: SelectChangeEvent) => onPartyChange(e.target.value)}
-        >
+        <Select value={party} label="Party" onChange={(e: SelectChangeEvent) => onPartyChange(e.target.value)}>
           <MenuItem value="">All parties</MenuItem>
-          {US_PARTY_OPTIONS.map(p => (
-            <MenuItem key={p} value={p}>{p}</MenuItem>
+          {US_PARTY_OPTIONS.map((p) => (
+            <MenuItem key={p} value={p}>
+              {p}
+            </MenuItem>
           ))}
         </Select>
       </FormControl>

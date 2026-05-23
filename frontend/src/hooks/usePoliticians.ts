@@ -6,7 +6,7 @@ export function usePoliticians(state?: string, party?: string) {
     queryKey: ['politicians', state, party],
     queryFn: ({ pageParam }) => fetchPoliticians(state, party, pageParam),
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => lastPage.hasNext ? lastPage.page + 1 : undefined,
+    getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.page + 1 : undefined),
     enabled: !!state,
   })
 }
