@@ -53,4 +53,7 @@ public class PoliticianRole {
 
     @Column(name = "jurisdiction_id")
     private String jurisdictionId;
+
+    @Column(name = "state_code", length = 2)
+    private String stateCode;
 }

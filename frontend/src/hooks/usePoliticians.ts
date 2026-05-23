@@ -1,29 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchFilterOptions, fetchPoliticians, syncPoliticians } from '@/services/politicians.service'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { fetchPoliticians } from '@/services/politicians.service'
 
 export function usePoliticians(state?: string, party?: string) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['politicians', state, party],
-    queryFn: async () => await fetchPoliticians(state, party),
-    retry: 1,
-  })
-}
-
-export function useFilterOptions() {
-  return useQuery({
-    queryKey: ['filter-options'],
-    queryFn: async () => await fetchFilterOptions(),
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-  })
-}
-
-export function useSyncPoliticians() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: syncPoliticians,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['politicians'] })
-    },
+    queryFn: ({ pageParam }) => fetchPoliticians(state, party, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.hasNext ? lastPage.page + 1 : undefined,
+    enabled: !!state,
   })
 }

@@ -1,16 +1,15 @@
 import axios from 'axios'
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api',
-})
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api' })
 
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
-      console.error('[API] Unauthorized')
+    const backendMessage: string | undefined = error.response?.data?.message
+    if (backendMessage) {
+      error.message = backendMessage
     } else if (!error.response) {
-      console.error('[API] Network error — server may be unavailable')
+      error.message = 'Server is unavailable. Please check your connection and try again.'
     }
     return Promise.reject(error)
   }

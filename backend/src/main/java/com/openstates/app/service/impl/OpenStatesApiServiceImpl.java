@@ -14,6 +14,8 @@ import com.openstates.app.exception.OpenStatesApiException;
 import com.openstates.app.exception.RateLimitException;
 import com.openstates.app.service.OpenStatesApiService;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,11 +23,11 @@ import reactor.util.retry.Retry;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OpenStatesApiServiceImpl implements OpenStatesApiService {
 
     private static final int MAX_RETRIES = 1;
-    private static final int MAX_PAGES = 2;
-    private static final int PER_PAGE = 30;
+    private static final int PER_PAGE = 10;
     private static final Duration REQUEST_DELAY = Duration.ofSeconds(1);
     private static final Duration RETRY_DELAY = Duration.ofSeconds(60);
 
@@ -34,21 +36,18 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
             "hi", "id", "il", "in", "ia", "ks", "ky", "la", "me", "md",
             "ma", "mi", "mn", "ms", "mo", "mt", "ne", "nv", "nh", "nj",
             "nm", "ny", "nc", "nd", "oh", "ok", "or", "pa", "ri", "sc",
-            "sd", "tn", "tx", "ut", "vt", "va", "wa", "wv", "wi", "wy", "dc"
+            "sd", "tn", "tx", "ut", "vt", "va", "wa", "wv", "wi", "wy",
+            "dc"
     );
 
-    private final WebClient webClient;
-
-    public OpenStatesApiServiceImpl(WebClient openStatesWebClient) {
-        this.webClient = openStatesWebClient;
-    }
+    @NonNull private final WebClient webClient;
 
     @Override
     public List<OpenStatesPersonResponse> fetchAllPoliticians() {
         return Flux.fromIterable(US_STATE_CODES)
                 .concatMap(stateCode -> Mono.delay(REQUEST_DELAY)
                     .doOnNext(ignored -> log.info("Fetching politicians for state: {}", stateCode))
-                    .flatMapMany(ignored -> fetchAllPagesForState(stateCode)
+                    .flatMapMany(ignored -> Flux.fromIterable(fetchPageForState(stateCode, 1))
                             .onErrorResume(RateLimitException.class, e -> {
                                 log.warn("Rate limit reached for state {}: {}", stateCode, e.getMessage());
                                 return Flux.empty();
@@ -66,41 +65,15 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
                 .block();
     }
 
-    private Flux<OpenStatesPersonResponse> fetchAllPagesForState(String stateCode) {
-        return fetchPage(stateCode, 1)
-                .flatMapMany(firstPage -> {
-                    if (firstPage.results() == null || firstPage.results().isEmpty()) {
-                        log.warn("No results returned for state: {}", stateCode);
-                        return Flux.empty();
-                    }
-                    if (firstPage.pagination() == null) {
-                        log.warn("No pagination info returned for state: {}", stateCode);
-                        return Flux.fromIterable(firstPage.results());
-                    }
-
-                    int maxPage = firstPage.pagination().maxPage();
-                    Flux<OpenStatesPersonResponse> firstResults = Flux.fromIterable(firstPage.results());
-
-                    if (maxPage <= 1) {
-                        return firstResults;
-                    }
-
-                    Flux<OpenStatesPersonResponse> remainingResults = Flux.range(2, Math.min(maxPage, MAX_PAGES) - 1)
-                            .concatMap(page -> Mono.delay(REQUEST_DELAY)
-                                    .then(fetchPage(stateCode, page))
-                                    .flatMapMany(response -> {
-                                        if (response.results() == null) {
-                                            log.warn("Empty response for state: {}, page: {}", stateCode, page);
-                                            return Flux.empty();
-                                        }
-                                        return Flux.fromIterable(response.results());
-                                    }));
-
-                    return firstResults.concatWith(remainingResults);
-                })
+    @Override
+    public List<OpenStatesPersonResponse> fetchPageForState(String stateCode, int page) {
+        log.info("Fetching page {} for state: {}", page, stateCode);
+        return fetchPage(stateCode, page)
                 .retryWhen(Retry.fixedDelay(MAX_RETRIES, RETRY_DELAY)
                         .filter(RateLimitException.class::isInstance)
-                        .doBeforeRetry(signal -> log.info("Retrying state after rate limit delay...")));
+                        .doBeforeRetry(signal -> log.info("Retrying state {} after rate limit delay...", stateCode)))
+                .map(response -> response.results() != null ? response.results() : List.<OpenStatesPersonResponse>of())
+                .block();
     }
 
     private Mono<OpenStatesApiResponse> fetchPage(String stateCode, int page) {

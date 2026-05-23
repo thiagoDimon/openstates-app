@@ -21,7 +21,9 @@ export interface Politician {
   roles: PoliticianRole[]
 }
 
-export interface FilterOptions {
-  states: string[]
-  parties: string[]
+export interface PoliticianPage {
+  content: Politician[]
+  page: number
+  size: number
+  hasNext: boolean
 }

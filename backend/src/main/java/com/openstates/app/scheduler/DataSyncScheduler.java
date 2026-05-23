@@ -1,46 +1,28 @@
 package com.openstates.app.scheduler;
 
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.openstates.app.repository.PoliticianRepository;
 import com.openstates.app.service.PoliticianService;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataSyncScheduler {
 
-    private final PoliticianService politicianService;
-    private final PoliticianRepository politicianRepository;
-
-    public DataSyncScheduler(PoliticianService politicianService, PoliticianRepository politicianRepository) {
-        this.politicianService = politicianService;
-        this.politicianRepository = politicianRepository;
-    }
+    @NonNull private final PoliticianService politicianService;
 
     @Scheduled(cron = "${openstates.sync.cron}")
     public void scheduledSync() {
         log.info("Running scheduled sync...");
         try {
-            politicianService.syncFromApi();
+            politicianService.syncAllFromApi();
         } catch (Exception e) {
             log.error("Scheduled sync failed unexpectedly: {}", e.getMessage(), e);
-        }
-    }
-
-    @EventListener(ApplicationReadyEvent.class)
-    public void syncOnStartupIfEmpty() {
-        if (politicianRepository.count() == 0) {
-            log.info("Database is empty. Running initial sync on startup...");
-            try {
-                politicianService.syncFromApi();
-            } catch (Exception e) {
-                log.error("Startup sync failed unexpectedly: {}", e.getMessage(), e);
-            }
         }
     }
 }

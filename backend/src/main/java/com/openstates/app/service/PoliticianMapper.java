@@ -17,8 +17,7 @@ import com.openstates.app.entity.PoliticianRole;
 public class PoliticianMapper {
 
     public PoliticianDTO toDTO(Politician politician) {
-        List<PoliticianRoleDTO> roles = politician.getRoles() == null
-                ? Collections.emptyList()
+        List<PoliticianRoleDTO> roles = politician.getRoles() == null ? Collections.emptyList()
                 : politician.getRoles().stream().map(this::toRoleDTO).toList();
 
         return new PoliticianDTO(
@@ -62,12 +61,28 @@ public class PoliticianMapper {
                     .district(currentRole.district())
                     .jurisdictionName(jurisdiction.name())
                     .jurisdictionId(jurisdiction.id())
+                    .stateCode(extractStateCode(jurisdiction.id()))
                     .build();
 
             politician.getRoles().add(role);
         }
 
         return politician;
+    }
+
+    private String extractStateCode(String jurisdictionId) {
+        if (jurisdictionId == null) return null;
+
+        for (String prefix : List.of("state:", "district:")) {
+            int idx = jurisdictionId.indexOf(prefix);
+            if (idx != -1) {
+                String after = jurisdictionId.substring(idx + prefix.length());
+                int slash = after.indexOf('/');
+                return slash == -1 ? after : after.substring(0, slash);
+            }
+        }
+
+        return null;
     }
 
     private PoliticianRoleDTO toRoleDTO(PoliticianRole role) {

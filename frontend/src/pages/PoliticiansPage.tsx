@@ -1,19 +1,37 @@
 import { useState } from 'react'
 import { Box, Button, CircularProgress, Container, Typography } from '@mui/material'
-import { useFilterOptions, usePoliticians, useSyncPoliticians } from '@/hooks/usePoliticians'
+import SearchIcon from '@mui/icons-material/Search'
+import SyncIcon from '@mui/icons-material/Sync'
+import { usePoliticians } from '@/hooks/usePoliticians'
 import { FilterBar } from '@/components/FilterBar'
 import { PoliticianGrid } from '@/components/PoliticianGrid'
+import { SyncDataModal } from '@/components/SyncDataModal'
 
 export function PoliticiansPage() {
   const [state, setState] = useState('')
   const [party, setParty] = useState('')
+  const [appliedState, setAppliedState] = useState<string | undefined>(undefined)
+  const [appliedParty, setAppliedParty] = useState<string | undefined>(undefined)
+  const [syncModalOpen, setSyncModalOpen] = useState(false)
 
-  const { data: filterOptions, isLoading: filtersLoading, isError: filtersError } = useFilterOptions()
-  const { data: politicians = [], isLoading, isError } = usePoliticians(
-    state || undefined,
-    party || undefined,
-  )
-  const { mutate: sync, isPending: isSyncing } = useSyncPoliticians()
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    isFetched,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = usePoliticians(appliedState, appliedParty)
+
+  const politicians = data?.pages.flatMap(p => p.content) ?? []
+  const errorMessage = isError && error instanceof Error ? error.message : undefined
+
+  function handleSearch() {
+    setAppliedState(state || undefined)
+    setAppliedParty(party || undefined)
+  }
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -22,37 +40,59 @@ export function PoliticiansPage() {
       </Typography>
 
       <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-        {filtersLoading ? (
-          <CircularProgress size={24} />
-        ) : filtersError ? (
-          <Typography color="error">
-            Failed to load filter options. Please refresh the page.
-          </Typography>
-        ) : filterOptions ? (
-          <FilterBar
-            filters={filterOptions}
-            state={state}
-            party={party}
-            onStateChange={setState}
-            onPartyChange={setParty}
-          />
-        ) : null}
+        <FilterBar
+          state={state}
+          party={party}
+          onStateChange={setState}
+          onPartyChange={setParty}
+        />
 
         <Button
           variant="contained"
-          onClick={() => sync()}
-          disabled={isSyncing}
-          startIcon={isSyncing ? <CircularProgress size={16} color="inherit" /> : undefined}
+          onClick={handleSearch}
+          disabled={isLoading || !state}
+          startIcon={<SearchIcon />}
           sx={{ ml: 'auto' }}
+        >
+          Search
+        </Button>
+
+        <Button
+          variant="contained"
+          onClick={() => setSyncModalOpen(true)}
+          startIcon={<SyncIcon />}
+          sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
         >
           Sync Data
         </Button>
       </Box>
 
-      <PoliticianGrid
-        politicians={politicians}
-        isLoading={isLoading}
-        isError={isError}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {!isLoading && !isFetched && (
+        <Typography color="text.secondary" sx={{ mt: 4, textAlign: 'center' }}>
+          Select a state to list the politicians and click Search.
+        </Typography>
+      )}
+
+      {!isLoading && isFetched && (
+        <PoliticianGrid
+          politicians={politicians}
+          isError={isError}
+          errorMessage={errorMessage}
+          onLoadMore={fetchNextPage}
+          hasMore={hasNextPage ?? false}
+          isLoadingMore={isFetchingNextPage}
+        />
+      )}
+
+      <SyncDataModal
+        open={syncModalOpen}
+        onClose={() => setSyncModalOpen(false)}
       />
     </Container>
   )

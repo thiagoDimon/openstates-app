@@ -1,7 +1,7 @@
 package com.openstates.app.repository;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,13 +12,14 @@ import com.openstates.app.entity.Politician;
 @Repository
 public interface PoliticianRepository extends JpaRepository<Politician, String> {
 
-    List<Politician> findAllByParty(String party);
+    @Query("SELECT COUNT(DISTINCT p.id) FROM Politician p JOIN p.roles r WHERE r.stateCode = :stateCode")
+    long countByStateCode(@Param("stateCode") String stateCode);
 
-    List<Politician> findAllByRoles_JurisdictionName(String jurisdictionName);
+    @Query(value = "SELECT DISTINCT p FROM Politician p JOIN p.roles r WHERE r.stateCode = :stateCode",
+           countQuery = "SELECT COUNT(DISTINCT p.id) FROM Politician p JOIN p.roles r WHERE r.stateCode = :stateCode")
+    Page<Politician> findPageByStateCode(@Param("stateCode") String stateCode, Pageable pageable);
 
-    @Query("SELECT DISTINCT p FROM Politician p JOIN p.roles r WHERE r.jurisdictionName = :state AND p.party = :party")
-    List<Politician> findAllByStateAndParty(@Param("state") String state, @Param("party") String party);
-
-    @Query("SELECT DISTINCT p.party FROM Politician p WHERE p.party IS NOT NULL ORDER BY p.party")
-    List<String> findDistinctParties();
+    @Query(value = "SELECT DISTINCT p FROM Politician p JOIN p.roles r WHERE r.stateCode = :stateCode AND p.party = :party",
+           countQuery = "SELECT COUNT(DISTINCT p.id) FROM Politician p JOIN p.roles r WHERE r.stateCode = :stateCode AND p.party = :party")
+    Page<Politician> findPageByStateCodeAndParty(@Param("stateCode") String stateCode, @Param("party") String party, Pageable pageable);
 }

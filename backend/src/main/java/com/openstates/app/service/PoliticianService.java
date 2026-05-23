@@ -1,15 +1,12 @@
 package com.openstates.app.service;
 
-import java.util.List;
-
-import com.openstates.app.dto.FilterOptionsDTO;
-import com.openstates.app.dto.PoliticianDTO;
+import com.openstates.app.dto.PoliticianPageDTO;
 
 public interface PoliticianService {
 
-    List<PoliticianDTO> findAll(String state, String party);
+    PoliticianPageDTO findAll(String stateCode, String party, int page, int size);
 
-    FilterOptionsDTO getFilterOptions();
+    void syncAllFromApi();
 
-    void syncFromApi();
+    void syncNextPageForState(String stateCode);
 }
