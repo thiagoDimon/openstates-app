@@ -8,3 +8,7 @@ export async function fetchPoliticians(state?: string, party?: string, page = 0)
   const response = await api.get<PoliticianPage>('/politicians', { params })
   return response.data
 }
+
+export async function syncState(stateCode: string): Promise<void> {
+  await api.post(`/politicians/sync/${stateCode.toLowerCase()}`)
+}

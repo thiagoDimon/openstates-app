@@ -62,4 +62,13 @@ public class SyncExecutorService {
             log.warn("Async page fetch failed for state {}: {}", stateCode, e.getMessage());
         }
     }
+
+    @Transactional
+    public void syncNextPage(String stateCode) {
+        int nextPage = stateSyncRepository.findById(stateCode)
+                .map(s -> s.getLastPageFetched() + 1)
+                .orElse(1);
+        log.info("Manual sync: fetching page {} for state {}...", nextPage, stateCode);
+        fetchAndSavePage(stateCode, nextPage);
+    }
 }

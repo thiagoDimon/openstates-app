@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Box, Button, CircularProgress, Container, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import SyncIcon from '@mui/icons-material/Sync'
 import { usePoliticians } from '@/hooks/usePoliticians'
 import { FilterBar } from '@/components/FilterBar'
 import { PoliticianGrid } from '@/components/PoliticianGrid'
+import { SyncDataModal } from '@/components/SyncDataModal'
 
 export function PoliticiansPage() {
   const [state, setState] = useState('')
   const [party, setParty] = useState('')
   const [appliedState, setAppliedState] = useState<string | undefined>(undefined)
   const [appliedParty, setAppliedParty] = useState<string | undefined>(undefined)
+  const [syncModalOpen, setSyncModalOpen] = useState(false)
 
   const {
     data,
@@ -53,6 +56,15 @@ export function PoliticiansPage() {
         >
           Search
         </Button>
+
+        <Button
+          variant="contained"
+          onClick={() => setSyncModalOpen(true)}
+          startIcon={<SyncIcon />}
+          sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+        >
+          Sync Data
+        </Button>
       </Box>
 
       {isLoading && (
@@ -77,6 +89,11 @@ export function PoliticiansPage() {
           isLoadingMore={isFetchingNextPage}
         />
       )}
+
+      <SyncDataModal
+        open={syncModalOpen}
+        onClose={() => setSyncModalOpen(false)}
+      />
     </Container>
   )
 }

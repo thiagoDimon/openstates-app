@@ -75,4 +75,14 @@ public class PoliticianServiceImpl implements PoliticianService {
             log.error("Sync failed: {}", e.getMessage(), e);
         }
     }
+
+    @Override
+    @Transactional
+    public void syncNextPageForState(String stateCode) {
+        if (stateCode == null || stateCode.isBlank()) {
+            return;
+        }
+        log.info("Manual sync requested for state {}...", stateCode);
+        syncExecutorService.syncNextPage(stateCode);
+    }
 }
