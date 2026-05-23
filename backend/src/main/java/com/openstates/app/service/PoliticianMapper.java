@@ -73,13 +73,16 @@ public class PoliticianMapper {
     private String extractStateCode(String jurisdictionId) {
         if (jurisdictionId == null) return null;
 
-        int stateIdx = jurisdictionId.indexOf("state:");
-        if (stateIdx == -1) return null;
+        for (String prefix : List.of("state:", "district:")) {
+            int idx = jurisdictionId.indexOf(prefix);
+            if (idx != -1) {
+                String after = jurisdictionId.substring(idx + prefix.length());
+                int slash = after.indexOf('/');
+                return slash == -1 ? after : after.substring(0, slash);
+            }
+        }
 
-        String after = jurisdictionId.substring(stateIdx + 6);
-        int slash = after.indexOf('/');
-
-        return slash == -1 ? after : after.substring(0, slash);
+        return null;
     }
 
     private PoliticianRoleDTO toRoleDTO(PoliticianRole role) {

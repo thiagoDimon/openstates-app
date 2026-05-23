@@ -20,7 +20,7 @@ public class DataSyncScheduler {
     public void scheduledSync() {
         log.info("Running scheduled sync...");
         try {
-            politicianService.syncFromApi();
+            politicianService.syncAllFromApi();
         } catch (Exception e) {
             log.error("Scheduled sync failed unexpectedly: {}", e.getMessage(), e);
         }

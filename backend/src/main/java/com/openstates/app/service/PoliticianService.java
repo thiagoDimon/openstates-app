@@ -6,7 +6,7 @@ public interface PoliticianService {
 
     PoliticianPageDTO findAll(String stateCode, String party, int page, int size);
 
-    void syncFromApi();
+    void syncAllFromApi();
 
     void syncNextPageForState(String stateCode);
 }

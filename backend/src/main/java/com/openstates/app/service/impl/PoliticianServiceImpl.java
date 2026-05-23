@@ -62,7 +62,7 @@ public class PoliticianServiceImpl implements PoliticianService {
 
     @Override
     @Transactional
-    public void syncFromApi() {
+    public void syncAllFromApi() {
         log.info("Starting full sync from OpenStates API...");
         try {
             List<OpenStatesPersonResponse> responses = openStatesApiService.fetchAllPoliticians();
