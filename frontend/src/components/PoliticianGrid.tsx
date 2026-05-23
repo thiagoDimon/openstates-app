@@ -26,14 +26,11 @@ export function PoliticianGrid({
     const sentinel = sentinelRef.current
     if (!sentinel) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
+    const observer = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
           onLoadMore()
         }
-      },
-      { threshold: 0.1 }
-    )
+      }, { threshold: 0.1 })
 
     observer.observe(sentinel)
     return () => observer.disconnect()

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { SelectChangeEvent } from '@mui/material'
 import {
   Button,
   Dialog,
@@ -11,7 +12,6 @@ import {
   Select,
   Typography,
 } from '@mui/material'
-import type { SelectChangeEvent } from '@mui/material'
 import { US_STATE_OPTIONS } from '@/types/usState'
 import { useSyncState } from '@/hooks/useSyncState'
 
@@ -38,7 +38,7 @@ export function SyncDataModal({ open, onClose }: SyncDataModalProps) {
   }
 
   return (
-    <Dialog open={open} onClose={isPending ? undefined : handleClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={isPending ? undefined : handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Sync Politicians Data</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -70,7 +70,16 @@ export function SyncDataModal({ open, onClose }: SyncDataModalProps) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isPending}>
+        <Button 
+          variant="outlined"
+          onClick={handleClose} 
+          disabled={isPending}
+          sx={{ 
+            bgcolor: isSuccess ? '' : 'error.main', 
+            '&:hover': { bgcolor: isSuccess ? '' : 'error.dark' }, 
+            color: isSuccess ? 'black' : 'white' 
+          }}
+        >
           {isSuccess ? 'Close' : 'Cancel'}
         </Button>
         {!isSuccess && (
@@ -79,6 +88,7 @@ export function SyncDataModal({ open, onClose }: SyncDataModalProps) {
             onClick={handleConfirm}
             disabled={!selectedState || isPending}
             loading={isPending}
+            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
           >
             Confirm
           </Button>

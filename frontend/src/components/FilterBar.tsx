@@ -1,5 +1,5 @@
-import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import type { SelectChangeEvent } from '@mui/material'
+import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { US_STATE_OPTIONS } from '@/types/usState'
 import { US_PARTY_OPTIONS } from '@/types/usParty'
 
@@ -13,7 +13,7 @@ interface FilterBarProps {
 export function FilterBar({ state, party, onStateChange, onPartyChange }: FilterBarProps) {
   return (
     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-      <FormControl size="small" sx={{ minWidth: 120 }}>
+      <FormControl size="small" sx={{ minWidth: 160 }}>
         <InputLabel>State</InputLabel>
         <Select
           value={state}
