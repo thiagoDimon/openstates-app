@@ -17,27 +17,19 @@ import com.openstates.app.service.OpenStatesApiService;
 import com.openstates.app.service.PoliticianMapper;
 import com.openstates.app.service.PoliticianService;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PoliticianServiceImpl implements PoliticianService {
 
-    private final PoliticianRepository politicianRepository;
-    private final StateSyncRepository stateSyncRepository;
-    private final OpenStatesApiService openStatesApiService;
-    private final PoliticianMapper politicianMapper;
-
-    public PoliticianServiceImpl(
-            PoliticianRepository politicianRepository,
-            StateSyncRepository stateSyncRepository,
-            OpenStatesApiService openStatesApiService,
-            PoliticianMapper politicianMapper) {
-        this.politicianRepository = politicianRepository;
-        this.stateSyncRepository = stateSyncRepository;
-        this.openStatesApiService = openStatesApiService;
-        this.politicianMapper = politicianMapper;
-    }
+    @NonNull private final PoliticianRepository politicianRepository;
+    @NonNull private final StateSyncRepository stateSyncRepository;
+    @NonNull private final OpenStatesApiService openStatesApiService;
+    @NonNull private final PoliticianMapper politicianMapper;
 
     @Override
     @Transactional
@@ -67,16 +59,12 @@ public class PoliticianServiceImpl implements PoliticianService {
     @Transactional
     public void syncFromApi() {
         log.info("Starting full sync from OpenStates API...");
-        try {
-            List<OpenStatesPersonResponse> responses = openStatesApiService.fetchAllPoliticians();
-            List<Politician> politicians = responses.stream()
-                    .map(politicianMapper::toEntity)
-                    .toList();        
-            politicianRepository.saveAll(politicians);
-            log.info("Full sync completed. {} politicians saved.", politicians.size());
-        } catch (Exception e) {
-            log.error("Sync failed: {}", e.getMessage(), e);
-        }
+        List<OpenStatesPersonResponse> responses = openStatesApiService.fetchAllPoliticians();
+        List<Politician> politicians = responses.stream()
+                .map(politicianMapper::toEntity)
+                .toList();
+        politicianRepository.saveAll(politicians);
+        log.info("Full sync completed. {} politicians saved.", politicians.size());
     }
 
     @Async

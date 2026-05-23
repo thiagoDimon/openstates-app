@@ -14,6 +14,8 @@ import com.openstates.app.exception.OpenStatesApiException;
 import com.openstates.app.exception.RateLimitException;
 import com.openstates.app.service.OpenStatesApiService;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,6 +23,7 @@ import reactor.util.retry.Retry;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OpenStatesApiServiceImpl implements OpenStatesApiService {
 
     private static final int MAX_RETRIES = 1;
@@ -37,11 +40,7 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
             "dc"
     );
 
-    private final WebClient webClient;
-
-    public OpenStatesApiServiceImpl(WebClient openStatesWebClient) {
-        this.webClient = openStatesWebClient;
-    }
+    @NonNull private final WebClient webClient;
 
     @Override
     public List<OpenStatesPersonResponse> fetchAllPoliticians() {

@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.openstates.app.dto.PoliticianDTO;
 import com.openstates.app.service.PoliticianService;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/politicians")
+@RequiredArgsConstructor
 public class PoliticianController {
 
-    private final PoliticianService politicianService;
-
-    public PoliticianController(PoliticianService politicianService) {
-        this.politicianService = politicianService;
-    }
+    @NonNull private final PoliticianService politicianService;
 
     @GetMapping
     public ResponseEntity<List<PoliticianDTO>> findAll(
