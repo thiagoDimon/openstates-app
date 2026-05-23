@@ -3,6 +3,6 @@ export const USParty = {
   REPUBLICAN: 'Republican',
 } as const
 
-export type USParty = typeof USParty[keyof typeof USParty]
+export type USParty = (typeof USParty)[keyof typeof USParty]
 
 export const US_PARTY_OPTIONS = Object.values(USParty)
