@@ -11,10 +11,12 @@ export function PoliticiansPage() {
   const [appliedState, setAppliedState] = useState<string | undefined>(undefined)
   const [appliedParty, setAppliedParty] = useState<string | undefined>(undefined)
 
-  const { data: politicians = [], isLoading, isError, isFetched } = usePoliticians(
+  const { data: politicians = [], isLoading, isError, error, isFetched } = usePoliticians(
     appliedState,
     appliedParty,
   )
+
+  const errorMessage = isError && error instanceof Error ? error.message : undefined
 
   function handleSearch() {
     setAppliedState(state || undefined)
@@ -63,6 +65,7 @@ export function PoliticiansPage() {
           politicians={politicians}
           isLoading={false}
           isError={isError}
+          errorMessage={errorMessage}
         />
       )}
     </Container>

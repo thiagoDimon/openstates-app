@@ -6,9 +6,10 @@ interface PoliticianGridProps {
   politicians: Politician[]
   isLoading: boolean
   isError: boolean
+  errorMessage?: string
 }
 
-export function PoliticianGrid({ politicians, isLoading, isError }: PoliticianGridProps) {
+export function PoliticianGrid({ politicians, isLoading, isError, errorMessage }: PoliticianGridProps) {
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
@@ -20,7 +21,7 @@ export function PoliticianGrid({ politicians, isLoading, isError }: PoliticianGr
   if (isError) {
     return (
       <Typography color="error" sx={{ textAlign: 'center', py: 8 }}>
-        Failed to load politicians. Please check your connection and try again.
+        {errorMessage ?? 'Failed to load politicians. Please try again.'}
       </Typography>
     )
   }
