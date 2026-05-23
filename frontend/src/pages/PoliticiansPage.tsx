@@ -11,11 +11,18 @@ export function PoliticiansPage() {
   const [appliedState, setAppliedState] = useState<string | undefined>(undefined)
   const [appliedParty, setAppliedParty] = useState<string | undefined>(undefined)
 
-  const { data: politicians = [], isLoading, isError, error, isFetched } = usePoliticians(
-    appliedState,
-    appliedParty,
-  )
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    isFetched,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = usePoliticians(appliedState, appliedParty)
 
+  const politicians = data?.pages.flatMap(p => p.content) ?? []
   const errorMessage = isError && error instanceof Error ? error.message : undefined
 
   function handleSearch() {
@@ -63,9 +70,11 @@ export function PoliticiansPage() {
       {!isLoading && isFetched && (
         <PoliticianGrid
           politicians={politicians}
-          isLoading={false}
           isError={isError}
           errorMessage={errorMessage}
+          onLoadMore={fetchNextPage}
+          hasMore={hasNextPage ?? false}
+          isLoadingMore={isFetchingNextPage}
         />
       )}
     </Container>

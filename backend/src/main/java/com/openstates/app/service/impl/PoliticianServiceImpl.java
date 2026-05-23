@@ -1,21 +1,20 @@
 package com.openstates.app.service.impl;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.openstates.app.dto.PoliticianDTO;
+import com.openstates.app.dto.PoliticianPageDTO;
 import com.openstates.app.dto.openstates.OpenStatesPersonResponse;
 import com.openstates.app.entity.Politician;
-import com.openstates.app.entity.StateSync;
 import com.openstates.app.repository.PoliticianRepository;
-import com.openstates.app.repository.StateSyncRepository;
 import com.openstates.app.service.OpenStatesApiService;
 import com.openstates.app.service.PoliticianMapper;
 import com.openstates.app.service.PoliticianService;
+import com.openstates.app.service.SyncExecutorService;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -27,80 +26,53 @@ import lombok.extern.slf4j.Slf4j;
 public class PoliticianServiceImpl implements PoliticianService {
 
     @NonNull private final PoliticianRepository politicianRepository;
-    @NonNull private final StateSyncRepository stateSyncRepository;
+    @NonNull private final SyncExecutorService syncExecutorService;
     @NonNull private final OpenStatesApiService openStatesApiService;
     @NonNull private final PoliticianMapper politicianMapper;
 
     @Override
     @Transactional
-    public List<PoliticianDTO> findAll(String stateCode, String party) {
+    public PoliticianPageDTO findAll(String stateCode, String party, int page, int size) {
         if (stateCode == null || stateCode.isBlank()) {
-            return List.of();
+            return new PoliticianPageDTO(List.of(), page, size, false);
         }
 
-        boolean hasData = politicianRepository.existsByRoles_StateCode(stateCode);
+        long count = politicianRepository.countByStateCode(stateCode);
+        long offset = (long) page * size;
 
-        if (!hasData) {
+        if (count == 0) {
             log.info("No data for state {}. Fetching page 1 from API...", stateCode);
-            fetchAndSavePage(stateCode, 1);
-        } else {
-            log.info("State {} found in DB. Fetching next page asynchronously...", stateCode);
-            fetchNextPageAsync(stateCode);
+            syncExecutorService.fetchAndSavePage(stateCode, 1);
+        } else if (offset + size >= count) {
+            log.info("State {} running low on data. Fetching next API page async...", stateCode);
+            syncExecutorService.fetchNextPageAsync(stateCode);
         }
 
-        List<Politician> politicians = party != null && !party.isBlank()
-                ? politicianRepository.findAllByStateCodeAndParty(stateCode, party)
-                : politicianRepository.findAllByRoles_StateCode(stateCode);
+        Page<Politician> result = party != null && !party.isBlank()
+                ? politicianRepository.findPageByStateCodeAndParty(stateCode, party, PageRequest.of(page, size))
+                : politicianRepository.findPageByStateCode(stateCode, PageRequest.of(page, size));
 
-        return politicians.stream().map(politicianMapper::toDTO).toList();
+        return new PoliticianPageDTO(
+                result.getContent().stream().map(politicianMapper::toDTO).toList(),
+                page,
+                size,
+                result.hasNext()
+        );
     }
 
     @Override
     @Transactional
     public void syncFromApi() {
         log.info("Starting full sync from OpenStates API...");
-        List<OpenStatesPersonResponse> responses = openStatesApiService.fetchAllPoliticians();
-        List<Politician> politicians = responses.stream()
-                .map(politicianMapper::toEntity)
-                .toList();
-        politicianRepository.saveAll(politicians);
-        log.info("Full sync completed. {} politicians saved.", politicians.size());
-    }
-
-    @Async
-    @Transactional
-    public void fetchNextPageAsync(String stateCode) {
         try {
-            int nextPage = stateSyncRepository.findById(stateCode)
-                    .map(s -> s.getLastPageFetched() + 1)
-                    .orElse(2);
-
-            log.info("Async fetching page {} for state {}...", nextPage, stateCode);
-            fetchAndSavePage(stateCode, nextPage);
+            List<OpenStatesPersonResponse> responses = openStatesApiService.fetchAllPoliticians();
+            List<Politician> politicians = responses.stream()
+                    .map(politicianMapper::toEntity)
+                    .toList();
+            politicianRepository.saveAll(politicians);
+            log.info("Full sync completed. {} politicians saved.", politicians.size());
         } catch (Exception e) {
-            log.warn("Async page fetch failed for state {}: {}", stateCode, e.getMessage());
+            log.error("Sync failed: {}", e.getMessage(), e);
         }
-    }
-
-    private void fetchAndSavePage(String stateCode, int page) {
-        List<OpenStatesPersonResponse> responses = openStatesApiService.fetchPageForState(stateCode, page);
-        if (responses.isEmpty()) {
-            log.info("No results for state {} page {}", stateCode, page);
-            return;
-        }
-
-        List<Politician> politicians = responses.stream()
-                .map(politicianMapper::toEntity)
-                .toList();
-
-        politicianRepository.saveAll(politicians);
-
-        stateSyncRepository.save(StateSync.builder()
-                .stateCode(stateCode)
-                .lastPageFetched(page)
-                .lastSyncedAt(LocalDateTime.now())
-                .build());
-
-        log.info("Saved {} politicians for state {} page {}", politicians.size(), stateCode, page);
     }
 }
