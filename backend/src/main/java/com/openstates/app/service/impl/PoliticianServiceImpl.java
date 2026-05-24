@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,9 +49,10 @@ public class PoliticianServiceImpl implements PoliticianService {
             syncExecutorService.fetchNextPageAsync(stateCode);
         }
 
+        Sort sort = Sort.by("name").ascending();
         Page<Politician> result = party != null && !party.isBlank()
-                ? politicianRepository.findPageByStateCodeAndParty(stateCode, party, PageRequest.of(page, size))
-                : politicianRepository.findPageByStateCode(stateCode, PageRequest.of(page, size));
+                ? politicianRepository.findPageByStateCodeAndParty(stateCode, party, PageRequest.of(page, size, sort))
+                : politicianRepository.findPageByStateCode(stateCode, PageRequest.of(page, size, sort));
 
         return new PoliticianPageDTO(
                 result.getContent().stream().map(politicianMapper::toDTO).toList(),
