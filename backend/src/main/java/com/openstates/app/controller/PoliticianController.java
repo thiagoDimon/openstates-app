@@ -17,10 +17,11 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/politicians")
 @RequiredArgsConstructor
-public class PoliticianController {
+public class PoliticianController implements PoliticianApi {
 
     @NonNull private final PoliticianService politicianService;
 
+    @Override
     @GetMapping
     public ResponseEntity<PoliticianPageDTO> findAll(
             @RequestParam(required = false) String state,
@@ -30,6 +31,7 @@ public class PoliticianController {
         return ResponseEntity.ok(politicianService.findAll(state, party, page, size));
     }
 
+    @Override
     @PostMapping("/sync/{stateCode}")
     public ResponseEntity<Void> syncState(@PathVariable String stateCode) {
         politicianService.syncNextPageForState(stateCode);
