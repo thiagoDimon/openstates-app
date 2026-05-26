@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Button, CircularProgress, Container, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import SyncIcon from '@mui/icons-material/Sync'
+import ClearIcon from '@mui/icons-material/Clear'
 import { usePoliticians } from '@/hooks/usePoliticians'
 import { FilterBar } from '@/components/FilterBar'
 import { PoliticianGrid } from '@/components/PoliticianGrid'
@@ -27,6 +28,13 @@ export function PoliticiansPage() {
     setAppliedParty(party || undefined)
   }
 
+  function handleClearFilters() {
+    setState('')
+    setParty('')
+    setAppliedState(undefined)
+    setAppliedParty(undefined)
+  }
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
@@ -43,6 +51,25 @@ export function PoliticiansPage() {
         }}
       >
         <Box sx={{ order: { xs: 1, sm: 2 }, display: 'flex', gap: 2, ml: 'auto' }}>
+          {appliedState && (
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={handleClearFilters}
+              startIcon={<ClearIcon />}
+              sx={{
+                borderRadius: '50px',
+                textTransform: 'none',
+                px: 3,
+                color: 'text.secondary',
+                borderColor: 'divider',
+                '&:hover': { borderColor: 'text.secondary', bgcolor: 'action.hover' },
+              }}
+            >
+              Clear Filters
+            </Button>
+          )}
+
           <Button
             variant="contained"
             size="large"
