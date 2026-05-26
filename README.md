@@ -45,8 +45,19 @@ Antes de rodar o projeto, você precisará de um token de acesso à API:
 
 Copie o arquivo de exemplo na raiz do projeto:
 
+Linux/macOS:
 ```bash
 cp .env.example .env
+```
+
+Windows (CMD):
+```cmd
+copy .env.example .env
+```
+
+Windows (PowerShell):
+```powershell
+Copy-Item .env.example .env
 ```
 
 Edite o `.env` com seus valores:
