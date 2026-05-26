@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
 
 @Slf4j
@@ -40,14 +41,17 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
             "dc"
     );
 
-    @NonNull private final WebClient webClient;
+    @NonNull 
+    private final WebClient webClient;
 
     @Override
     public List<OpenStatesPersonResponse> fetchAllPoliticians() {
         return Flux.fromIterable(US_STATE_CODES)
                 .concatMap(stateCode -> Mono.delay(REQUEST_DELAY)
                     .doOnNext(ignored -> log.info("Fetching politicians for state: {}", stateCode))
-                    .flatMapMany(ignored -> Flux.fromIterable(fetchPageForState(stateCode, 1))
+                    .flatMapMany(ignored -> Mono.fromCallable(() -> fetchPageForState(stateCode, 1))
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .flatMapMany(Flux::fromIterable)
                             .onErrorResume(RateLimitException.class, e -> {
                                 log.warn("Rate limit reached for state {}: {}", stateCode, e.getMessage());
                                 return Flux.empty();

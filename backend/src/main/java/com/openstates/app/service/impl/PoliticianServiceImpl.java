@@ -26,10 +26,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PoliticianServiceImpl implements PoliticianService {
 
-    @NonNull private final PoliticianRepository politicianRepository;
-    @NonNull private final SyncExecutorService syncExecutorService;
-    @NonNull private final OpenStatesApiService openStatesApiService;
-    @NonNull private final PoliticianMapper politicianMapper;
+    @NonNull 
+    private final PoliticianRepository politicianRepository;
+    @NonNull 
+    private final SyncExecutorService syncExecutorService;
+    @NonNull 
+    private final OpenStatesApiService openStatesApiService;
+    @NonNull 
+    private final PoliticianMapper politicianMapper;
 
     @Override
     @Transactional

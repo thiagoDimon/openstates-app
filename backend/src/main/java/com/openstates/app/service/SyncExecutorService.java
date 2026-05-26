@@ -22,10 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SyncExecutorService {
 
-    @NonNull private final PoliticianRepository politicianRepository;
-    @NonNull private final StateSyncRepository stateSyncRepository;
-    @NonNull private final OpenStatesApiService openStatesApiService;
-    @NonNull private final PoliticianMapper politicianMapper;
+    @NonNull 
+    private final PoliticianRepository politicianRepository;
+    @NonNull 
+    private final StateSyncRepository stateSyncRepository;
+    @NonNull 
+    private final OpenStatesApiService openStatesApiService;
+    @NonNull 
+    private final PoliticianMapper politicianMapper;
 
     @Transactional
     public void fetchAndSavePage(String stateCode, int page) {
