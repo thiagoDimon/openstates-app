@@ -51,7 +51,8 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
                     .doOnNext(ignored -> log.info("Fetching politicians for state: {}", stateCode))
                     .flatMapMany(ignored -> Mono.fromCallable(() -> fetchPageForState(stateCode, 1))
                             .subscribeOn(Schedulers.boundedElastic())
-                            .flatMapMany(Flux::fromIterable)
+                            .flatMapMany(response -> Flux.fromIterable(
+                                    response.results() != null ? response.results() : List.<OpenStatesPersonResponse>of()))
                             .onErrorResume(RateLimitException.class, e -> {
                                 log.warn("Rate limit reached for state {}: {}", stateCode, e.getMessage());
                                 return Flux.empty();
@@ -70,13 +71,12 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
     }
 
     @Override
-    public List<OpenStatesPersonResponse> fetchPageForState(String stateCode, int page) {
+    public OpenStatesApiResponse fetchPageForState(String stateCode, int page) {
         log.info("Fetching page {} for state: {}", page, stateCode);
         return fetchPage(stateCode, page)
                 .retryWhen(Retry.fixedDelay(MAX_RETRIES, RETRY_DELAY)
                         .filter(RateLimitException.class::isInstance)
                         .doBeforeRetry(signal -> log.info("Retrying state {} after rate limit delay...", stateCode)))
-                .map(response -> response.results() != null ? response.results() : List.<OpenStatesPersonResponse>of())
                 .block();
     }
 

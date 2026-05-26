@@ -15,6 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.openstates.app.dto.openstates.OpenStatesApiResponse;
+import com.openstates.app.dto.openstates.OpenStatesPagination;
 import com.openstates.app.dto.openstates.OpenStatesPersonResponse;
 import com.openstates.app.entity.Politician;
 import com.openstates.app.entity.StateSync;
@@ -38,13 +40,17 @@ class SyncExecutorServiceTest {
 
     @Test
     void fetchAndSavePage_withResults_savesPoliticiansAndUpdatesSync() {
-        OpenStatesPersonResponse response = new OpenStatesPersonResponse(
+        OpenStatesPersonResponse person = new OpenStatesPersonResponse(
                 "ocd-person/1", "Jane Doe", null, null, null,
                 null, null, null, null, null, null, null, null);
+
+        OpenStatesApiResponse apiResponse = new OpenStatesApiResponse(List.of(person),
+                new OpenStatesPagination(1, 5, 10, 50));
+
         Politician politician = Politician.builder().id("ocd-person/1").name("Jane Doe").build();
 
-        when(openStatesApiService.fetchPageForState("ca", 1)).thenReturn(List.of(response));
-        when(politicianMapper.toEntity(response)).thenReturn(politician);
+        when(openStatesApiService.fetchPageForState("ca", 1)).thenReturn(apiResponse);
+        when(politicianMapper.toEntity(person)).thenReturn(politician);
 
         syncExecutorService.fetchAndSavePage("ca", 1);
 
@@ -54,11 +60,15 @@ class SyncExecutorServiceTest {
         verify(stateSyncRepository).save(captor.capture());
         assertThat(captor.getValue().getStateCode()).isEqualTo("ca");
         assertThat(captor.getValue().getLastPageFetched()).isEqualTo(1);
+        assertThat(captor.getValue().getMaxPage()).isEqualTo(5);
     }
 
     @Test
     void fetchAndSavePage_withEmptyResults_savesNothing() {
-        when(openStatesApiService.fetchPageForState("ca", 1)).thenReturn(List.of());
+        OpenStatesApiResponse emptyResponse = new OpenStatesApiResponse(List.of(),
+                new OpenStatesPagination(1, 1, 10, 0));
+
+        when(openStatesApiService.fetchPageForState("ca", 1)).thenReturn(emptyResponse);
 
         syncExecutorService.fetchAndSavePage("ca", 1);
 
