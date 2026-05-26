@@ -1,36 +1,36 @@
-CREATE TABLE politician (
-    id              VARCHAR(255) PRIMARY KEY,
-    name            VARCHAR(255) NOT NULL,
-    given_name      VARCHAR(255),
-    family_name     VARCHAR(255),
-    party           VARCHAR(255),
-    image_url       VARCHAR(500),
-    email           VARCHAR(255),
-    gender          VARCHAR(50),
-    birth_date      VARCHAR(20),
-    openstates_url  VARCHAR(500),
-    extra_data      JSONB,
-    created_at      TIMESTAMP DEFAULT NOW(),
-    updated_at      TIMESTAMP DEFAULT NOW()
+create table politician (
+    id              varchar(255) primary key,
+    name            varchar(255) not null,
+    given_name      varchar(255),
+    family_name     varchar(255),
+    party           varchar(255),
+    image_url       varchar(500),
+    email           varchar(255),
+    gender          varchar(50),
+    birth_date      varchar(20),
+    openstates_url  varchar(500),
+    extra_data      jsonb,
+    created_at      timestamp default now(),
+    updated_at      timestamp default now()
 );
 
-CREATE TABLE politician_role (
-    id                  UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    politician_id       VARCHAR(255) NOT NULL,
-    title               VARCHAR(255) NOT NULL,
-    org_classification  VARCHAR(50),
-    district            VARCHAR(100),
-    jurisdiction_name   VARCHAR(255),
-    jurisdiction_id     VARCHAR(255),
-    state_code          VARCHAR(2),
-    CONSTRAINT fk_politician_role_politician FOREIGN KEY (politician_id) REFERENCES politician(id) ON DELETE CASCADE
+create table politician_role (
+    id                  uuid default gen_random_uuid() primary key,
+    politician_id       varchar(255) not null,
+    title               varchar(255) not null,
+    org_classification  varchar(50),
+    district            varchar(100),
+    jurisdiction_name   varchar(255),
+    jurisdiction_id     varchar(255),
+    state_code          varchar(2),
+    constraint fk_politician_role_politician foreign key (politician_id) references politician(id) on delete cascade
 );
 
-CREATE INDEX idx_politician_role_politician_id ON politician_role(politician_id);
-CREATE INDEX idx_politician_role_state_code ON politician_role(state_code);
+create index idx_politician_role_politician_id on politician_role(politician_id);
+create index idx_politician_role_state_code on politician_role(state_code);
 
-CREATE TABLE state_sync (
-    state_code        VARCHAR(2) PRIMARY KEY,
-    last_page_fetched INTEGER NOT NULL DEFAULT 1,
-    last_synced_at    TIMESTAMP NOT NULL
+create table state_sync (
+    state_code        varchar(2) primary key,
+    last_page_fetched integer not null default 1,
+    last_synced_at    timestamp not null
 );
