@@ -90,11 +90,12 @@ cd openstates-app
 ```
 
 **2. Suba a stack completa**
+
+> Certifique-se de que o `.env` está configurado com o `OPENSTATES_API_KEY` antes de executar.
+
 ```bash
 docker compose up --build
 ```
-
-Certifique-se de que o `.env` está configurado com o `OPENSTATES_API_KEY` antes de executar.
 
 O Docker irá subir os três serviços em ordem:
 1. Banco de dados PostgreSQL (aguarda health check)
@@ -103,7 +104,7 @@ O Docker irá subir os três serviços em ordem:
 
 > A primeira execução pode levar alguns minutos devido ao build das imagens e à inicialização do Spring Boot.
 
-**4. Acesse a aplicação**
+**3. Acesse a aplicação**
 
 | Serviço | URL |
 |---|---|
@@ -111,7 +112,7 @@ O Docker irá subir os três serviços em ordem:
 | **Backend (API)** | http://localhost:8080/api |
 | **Health Check** | http://localhost:8080/actuator/health |
 
-**5. Parar a stack**
+**4. Parar a stack**
 ```bash
 docker compose down
 ```
@@ -124,6 +125,8 @@ docker compose down -v
 ---
 
 ## Cenário 2 — Execução local
+
+> Se ainda não criou o `.env`, siga a seção [Variáveis de ambiente](#variáveis-de-ambiente) antes de continuar.
 
 ### Pré-requisitos
 
@@ -172,6 +175,8 @@ docker compose up db -d
 #### Backend
 
 **4. Acesse o diretório do backend**
+
+Linux/macOS e Windows:
 ```bash
 cd backend
 ```
@@ -188,15 +193,15 @@ Windows:
 mvnw.cmd spring-boot:run
 ```
 
-O backend lê as variáveis diretamente do arquivo `.env` na raiz do projeto. Nenhuma configuração adicional é necessária.
-
 O backend estará disponível em `http://localhost:8080`.
 
 ---
 
 #### Frontend
 
-**6. Em outro terminal, acesse o diretório do frontend**
+**6. Em um novo terminal, a partir da raiz do projeto, acesse o diretório do frontend**
+
+Linux/macOS e Windows:
 ```bash
 cd frontend
 ```
@@ -244,6 +249,7 @@ Com a aplicação rodando, acesse a documentação interativa dos endpoints:
 
 Os testes unitários cobrem controller, service, repository e mapper. Para executá-los:
 
+Linux/macOS e Windows:
 ```bash
 cd backend
 ```
