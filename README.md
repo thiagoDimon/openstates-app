@@ -218,7 +218,7 @@ Com a aplicação rodando, acesse a documentação interativa dos endpoints:
 | Recurso | URL |
 |---|---|
 | **Swagger UI** | http://localhost:8080/swagger-ui/index.html |
-| **OpenAPI JSON** | http://localhost:8080/v3/api-docs |
+| **OpenAPI JSON** | http://localhost:8080/api/v3/api-docs |
 
 ---
 
