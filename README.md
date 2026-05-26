@@ -1,6 +1,6 @@
 # OpenStates App
 
-Aplicação fullstack para consulta de representantes políticos dos Estados Unidos, com dados consumidos da [OpenStates API](https://v3.openstates.org/docs).
+Aplicação fullstack para consulta de representantes políticos dos Estados Unidos, com dados consumidos da [OpenStates API](https://v3.openstates.org/docs) — endpoint [People](https://v3.openstates.org/docs#/people/people_list_people_get).
 
 ---
 
