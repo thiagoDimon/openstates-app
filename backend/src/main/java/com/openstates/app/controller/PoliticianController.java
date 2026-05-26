@@ -19,7 +19,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PoliticianController implements PoliticianApi {
 
-    @NonNull private final PoliticianService politicianService;
+    @NonNull 
+    private final PoliticianService politicianService;
 
     @Override
     @GetMapping

@@ -63,7 +63,7 @@ class PoliticianServiceImplTest {
 
         PoliticianPageDTO result = service.findAll("ca", null, 0, 10);
 
-        verify(syncExecutorService).fetchAndSavePage("ca", 1);
+        verify(syncExecutorService).syncNextPage("ca");
         assertThat(result.content()).hasSize(1);
     }
 

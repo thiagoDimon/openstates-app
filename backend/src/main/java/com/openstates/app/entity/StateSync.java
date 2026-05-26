@@ -30,4 +30,7 @@ public class StateSync {
 
     @Column(name = "last_synced_at", nullable = false)
     private LocalDateTime lastSyncedAt;
+
+    @Column(name = "max_page", nullable = false)
+    private int maxPage;
 }

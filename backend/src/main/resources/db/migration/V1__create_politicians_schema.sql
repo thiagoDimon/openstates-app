@@ -32,5 +32,6 @@ create index idx_politician_role_state_code on politician_role(state_code);
 create table state_sync (
     state_code        varchar(2) primary key,
     last_page_fetched integer not null default 1,
-    last_synced_at    timestamp not null
+    last_synced_at    timestamp not null,
+    max_page          integer not null default 0
 );

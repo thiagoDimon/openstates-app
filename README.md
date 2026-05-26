@@ -1,6 +1,6 @@
 # OpenStates App
 
-Aplicação fullstack para consulta de representantes políticos dos Estados Unidos, com dados consumidos da [OpenStates API](https://v3.openstates.org/docs).
+Aplicação fullstack para consulta de representantes políticos dos Estados Unidos, com dados consumidos da [OpenStates API](https://v3.openstates.org/docs) — endpoint [People](https://v3.openstates.org/docs#/people/people_list_people_get).
 
 ---
 
@@ -155,7 +155,14 @@ git clone https://github.com/thiagoDimon/openstates-app.git
 cd openstates-app
 ```
 
-**2. Suba apenas o banco de dados via Docker**
+**2. Certifique-se de adicionar a API KEY no `application.properties` do backend**
+
+Abra o arquivo `backend/src/main/resources/application.properties` e defina o valor da propriedade:
+```properties
+openstates.api.key=sua_api_key_aqui
+```
+
+**3. Suba apenas o banco de dados via Docker**
 ```bash
 docker compose up db -d
 ```

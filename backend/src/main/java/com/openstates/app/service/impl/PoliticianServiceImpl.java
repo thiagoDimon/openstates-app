@@ -26,10 +26,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PoliticianServiceImpl implements PoliticianService {
 
-    @NonNull private final PoliticianRepository politicianRepository;
-    @NonNull private final SyncExecutorService syncExecutorService;
-    @NonNull private final OpenStatesApiService openStatesApiService;
-    @NonNull private final PoliticianMapper politicianMapper;
+    @NonNull
+    private final PoliticianRepository politicianRepository;
+    @NonNull
+    private final SyncExecutorService syncExecutorService;
+    @NonNull
+    private final OpenStatesApiService openStatesApiService;
+    @NonNull
+    private final PoliticianMapper politicianMapper;
 
     @Override
     @Transactional
@@ -41,12 +45,9 @@ public class PoliticianServiceImpl implements PoliticianService {
         long count = politicianRepository.countByStateCode(stateCode);
         long offset = (long) page * size;
 
-        if (count == 0) {
-            log.info("No data for state {}. Fetching page 1 from API...", stateCode);
-            syncExecutorService.fetchAndSavePage(stateCode, 1);
-        } else if (offset + size >= count) {
-            log.info("State {} running low on data. Fetching next API page async...", stateCode);
-            syncExecutorService.fetchNextPageAsync(stateCode);
+        if (offset + size >= count) {
+            log.info("State {} needs more data (count={}). Fetching next API page...", stateCode, count);
+            syncExecutorService.syncNextPage(stateCode);
         }
 
         Sort sort = Sort.by("name").ascending();
@@ -54,11 +55,13 @@ public class PoliticianServiceImpl implements PoliticianService {
                 ? politicianRepository.findPageByStateCodeAndParty(stateCode, party, PageRequest.of(page, size, sort))
                 : politicianRepository.findPageByStateCode(stateCode, PageRequest.of(page, size, sort));
 
+        boolean hasNext = result.hasNext() || syncExecutorService.hasMoreApiPages(stateCode);
+
         return new PoliticianPageDTO(
                 result.getContent().stream().map(politicianMapper::toDTO).toList(),
                 page,
                 size,
-                result.hasNext()
+                hasNext
         );
     }
 
