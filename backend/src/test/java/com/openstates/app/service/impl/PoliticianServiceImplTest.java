@@ -56,6 +56,7 @@ class PoliticianServiceImplTest {
         Page<Politician> page = new PageImpl<>(List.of(politician));
 
         when(politicianRepository.countByStateCode("ca")).thenReturn(0L);
+        when(syncExecutorService.hasMoreApiPages("ca")).thenReturn(true);
         when(politicianRepository.findPageByStateCode(eq("ca"), any(Pageable.class))).thenReturn(page);
         when(politicianMapper.toDTO(politician)).thenReturn(
                 new com.openstates.app.dto.PoliticianDTO("ocd-person/1", "Jane Doe", null, null, null, null, null, null,

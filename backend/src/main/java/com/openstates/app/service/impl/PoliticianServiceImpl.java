@@ -45,7 +45,7 @@ public class PoliticianServiceImpl implements PoliticianService {
         long count = politicianRepository.countByStateCode(stateCode);
         long offset = (long) page * size;
 
-        if (offset + size >= count) {
+        if (offset + size >= count && syncExecutorService.hasMoreApiPages(stateCode)) {
             log.info("State {} needs more data (count={}). Fetching next API page...", stateCode, count);
             syncExecutorService.syncNextPage(stateCode);
         }
