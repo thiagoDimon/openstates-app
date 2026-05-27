@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, Button, CircularProgress, Container, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Container, IconButton, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import SyncIcon from '@mui/icons-material/Sync'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -37,9 +37,22 @@ export function PoliticiansPage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
-        US Politicians
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          US Politicians
+        </Typography>
+        <IconButton
+          onClick={() => setSyncModalOpen(true)}
+          sx={{
+            display: { xs: 'flex', md: 'none' },
+            bgcolor: '#111',
+            color: 'white',
+            '&:hover': { bgcolor: '#333' },
+          }}
+        >
+          <SyncIcon />
+        </IconButton>
+      </Box>
 
       <Box
         sx={{
@@ -87,6 +100,7 @@ export function PoliticiansPage() {
             onClick={() => setSyncModalOpen(true)}
             startIcon={<SyncIcon />}
             sx={{
+              display: { xs: 'none', md: 'flex' },
               borderRadius: '50px',
               bgcolor: '#111',
               '&:hover': { bgcolor: '#333' },
