@@ -1,6 +1,6 @@
 # OpenStates App
 
-Aplicação fullstack para consulta de representantes políticos dos Estados Unidos, com dados consumidos da [OpenStates API](https://v3.openstates.org/docs) — endpoint [People](https://v3.openstates.org/docs#/people/people_list_people_get).
+Aplicação fullstack para consulta de representantes políticos dos Estados Unidos, com dados consumidos da [OpenStates API](https://docs.openstates.org/api-v3/) — endpoint [People](https://v3.openstates.org/docs#/people/people_search_people_get).
 
 ---
 
@@ -11,7 +11,7 @@ Aplicação fullstack para consulta de representantes políticos dos Estados Uni
 |---|---|
 | Java | 21 |
 | Spring Boot | 3.3.5 |
-| Maven Wrapper | 3.x |
+| Maven Wrapper | 3.3.2 |
 
 ### Frontend
 | Tecnologia | Versão |
@@ -38,6 +38,15 @@ Antes de rodar o projeto, você precisará de um token de acesso à API:
 1. Crie uma conta em [https://open.pluralpolicy.com/accounts/profile/](https://open.pluralpolicy.com/accounts/profile/)
 2. Gere seu **API Token** na página de perfil
 3. Guarde o token — ele será usado na variável `OPENSTATES_API_KEY`
+
+---
+
+## Clone o repositório
+
+```bash
+git clone https://github.com/thiagoDimon/openstates-app.git
+cd openstates-app
+```
 
 ---
 
@@ -83,13 +92,7 @@ Edite o `.env` com seus valores:
 
 ### Passo a passo
 
-**1. Clone o repositório**
-```bash
-git clone https://github.com/thiagoDimon/openstates-app.git
-cd openstates-app
-```
-
-**2. Suba a stack completa**
+**1. Suba a stack completa**
 
 > Certifique-se de que o `.env` está configurado com o `OPENSTATES_API_KEY` antes de executar.
 
@@ -104,7 +107,7 @@ O Docker irá subir os três serviços em ordem:
 
 > A primeira execução pode levar alguns minutos devido ao build das imagens e à inicialização do Spring Boot.
 
-**3. Acesse a aplicação**
+**2. Acesse a aplicação**
 
 | Serviço | URL |
 |---|---|
@@ -112,7 +115,7 @@ O Docker irá subir os três serviços em ordem:
 | **Backend (API)** | http://localhost:8080/api |
 | **Health Check** | http://localhost:8080/actuator/health |
 
-**4. Parar a stack**
+**3. Parar a stack**
 ```bash
 docker compose down
 ```
@@ -125,8 +128,6 @@ docker compose down -v
 ---
 
 ## Cenário 2 — Execução local
-
-> Se ainda não criou o `.env`, siga a seção [Variáveis de ambiente](#variáveis-de-ambiente) antes de continuar.
 
 ### Pré-requisitos
 
@@ -152,20 +153,14 @@ docker compose down -v
 
 ### Passo a passo
 
-**1. Clone o repositório**
-```bash
-git clone https://github.com/thiagoDimon/openstates-app.git
-cd openstates-app
-```
-
-**2. Certifique-se de adicionar a API KEY no `application.properties` do backend**
+**1. Certifique-se de adicionar a API KEY no `application.properties` do backend**
 
 Abra o arquivo `backend/src/main/resources/application.properties` e defina o valor da propriedade:
 ```properties
 openstates.api.key=sua_api_key_aqui
 ```
 
-**3. Suba apenas o banco de dados via Docker**
+**2. Suba apenas o banco de dados via Docker**
 ```bash
 docker compose up db -d
 ```
@@ -174,14 +169,14 @@ docker compose up db -d
 
 #### Backend
 
-**4. Acesse o diretório do backend**
+**3. Acesse o diretório do backend**
 
 Linux/macOS e Windows:
 ```bash
 cd backend
 ```
 
-**5. Execute o backend com o Maven Wrapper**
+**4. Execute o backend com o Maven Wrapper**
 
 Linux/macOS:
 ```bash
@@ -199,19 +194,19 @@ O backend estará disponível em `http://localhost:8080`.
 
 #### Frontend
 
-**6. Em um novo terminal, a partir da raiz do projeto, acesse o diretório do frontend**
+**5. Em um novo terminal, a partir da raiz do projeto, acesse o diretório do frontend**
 
 Linux/macOS e Windows:
 ```bash
 cd frontend
 ```
 
-**7. Instale as dependências**
+**6. Instale as dependências**
 ```bash
 npm install
 ```
 
-**8. Execute o frontend**
+**7. Execute o frontend**
 ```bash
 npm run dev
 ```
