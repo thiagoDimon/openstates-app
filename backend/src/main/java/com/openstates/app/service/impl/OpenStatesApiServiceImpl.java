@@ -12,6 +12,7 @@ import com.openstates.app.dto.openstates.OpenStatesErrorResponse;
 import com.openstates.app.dto.openstates.OpenStatesPersonResponse;
 import com.openstates.app.exception.OpenStatesApiException;
 import com.openstates.app.exception.RateLimitException;
+import com.openstates.app.repository.StateSyncRepository;
 import com.openstates.app.service.OpenStatesApiService;
 
 import lombok.NonNull;
@@ -44,12 +45,21 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
     @NonNull 
     private final WebClient webClient;
 
+    @NonNull
+    private final StateSyncRepository stateSyncRepository;
+
+    private int getLastSyncedPage(String stateCode) {
+        return stateSyncRepository.findById(stateCode)
+                .map(sync -> sync.getLastPageFetched() + 1)
+                .orElse(1);
+}
+
     @Override
     public List<OpenStatesPersonResponse> fetchAllPoliticians() {
         return Flux.fromIterable(US_STATE_CODES)
                 .concatMap(stateCode -> Mono.delay(REQUEST_DELAY)
                     .doOnNext(ignored -> log.info("Fetching politicians for state: {}", stateCode))
-                    .flatMapMany(ignored -> Mono.fromCallable(() -> fetchPageForState(stateCode, 1))
+                    .flatMapMany(ignored -> Mono.fromCallable(() -> fetchPageForState(stateCode, getLastSyncedPage(stateCode)))
                             .subscribeOn(Schedulers.boundedElastic())
                             .flatMapMany(response -> Flux.fromIterable(
                                     response.results() != null ? response.results() : List.<OpenStatesPersonResponse>of()))
