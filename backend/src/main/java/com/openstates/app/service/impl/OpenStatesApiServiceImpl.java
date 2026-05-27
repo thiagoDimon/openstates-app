@@ -52,7 +52,7 @@ public class OpenStatesApiServiceImpl implements OpenStatesApiService {
         return stateSyncRepository.findById(stateCode)
                 .map(sync -> sync.getLastPageFetched() + 1)
                 .orElse(1);
-}
+    }
 
     @Override
     public List<OpenStatesPersonResponse> fetchAllPoliticians() {
